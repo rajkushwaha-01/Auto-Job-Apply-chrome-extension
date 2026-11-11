@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { width: 260px; padding: 12px; font-family: sans-serif; }
+    input { width: 100%; margin-bottom: 8px; padding: 6px; }
+    button { width: 100%; padding: 8px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="loginView">
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button id="loginBtn">Login</button>
+  </div>
+  <div id="appView" style="display:none;">
+    <p>Logged in ✓</p>
+    <button id="autofillBtn">Autofill this page</button>
+    <button id="logoutBtn">Logout</button>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
