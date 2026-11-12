@@ -1,23 +1,346 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auto Job Apply</title>
   <style>
-    body { width: 260px; padding: 12px; font-family: sans-serif; }
-    input { width: 100%; margin-bottom: 8px; padding: 6px; }
-    button { width: 100%; padding: 8px; cursor: pointer; }
+    :root {
+      --yc-orange: #f26522;
+      --yc-orange-hover: #e05313;
+      --yc-orange-active: #cc490c;
+      --yc-orange-light: rgba(242, 101, 34, 0.12);
+      --yc-bg: #f6f6ef;
+      --surface: #ffffff;
+      --border: #e6e4df;
+      --border-focus: #f26522;
+      --text-main: #1a1a1a;
+      --text-muted: #5f5e5e;
+      --text-dim: #8c8a87;
+      --success: #15803d;
+      --success-bg: #f0fdf4;
+      --success-border: #bbf7d0;
+      --danger: #b91c1c;
+      --danger-bg: #fef2f2;
+      --danger-border: #fecaca;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 330px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--yc-bg);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-size: 13px;
+      line-height: 1.4;
+      user-select: none;
+    }
+
+    .yc-header {
+      background-color: var(--yc-orange);
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #ffffff;
+    }
+
+    .yc-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .yc-logo-box {
+      width: 22px;
+      height: 22px;
+      background-color: #ffffff;
+      color: var(--yc-orange);
+      font-weight: 800;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2px;
+      line-height: 1;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .yc-title-group {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .yc-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+    }
+
+    .main-body {
+      padding: 12px;
+    }
+
+    .yc-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 13px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .card-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    .field-group {
+      margin-bottom: 10px;
+      text-align: left;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      height: 33px;
+      padding: 0 9px;
+      font-size: 12.5px;
+      font-family: inherit;
+      color: var(--text-main);
+      background-color: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      user-select: text;
+    }
+
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px var(--yc-orange-light);
+    }
+
+    input::placeholder {
+      color: var(--text-dim);
+    }
+
+    button {
+      width: 100%;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background-color 0.15s ease, transform 0.05s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.99);
+    }
+
+    #loginBtn {
+      background-color: var(--yc-orange);
+      color: #ffffff;
+      margin-top: 4px;
+      box-shadow: 0 1px 2px rgba(242, 101, 34, 0.25);
+    }
+
+    #loginBtn:hover {
+      background-color: var(--yc-orange-hover);
+    }
+
+    #loginBtn:active {
+      background-color: var(--yc-orange-active);
+    }
+
+    #autofillBtn {
+      height: 38px;
+      background-color: var(--yc-orange);
+      color: #ffffff;
+      font-size: 13px;
+      box-shadow: 0 1px 3px rgba(242, 101, 34, 0.3);
+      margin-bottom: 8px;
+    }
+
+    #autofillBtn:hover {
+      background-color: var(--yc-orange-hover);
+    }
+
+    #autofillBtn:active {
+      background-color: var(--yc-orange-active);
+    }
+
+    #logoutBtn {
+      height: 30px;
+      background-color: #ffffff;
+      color: var(--danger);
+      border-color: var(--danger-border);
+      font-size: 11.5px;
+    }
+
+    #logoutBtn:hover {
+      background-color: var(--danger-bg);
+      border-color: #fca5a5;
+    }
+
+    .status-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      margin-bottom: 12px;
+    }
+
+    .status-card p {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--success);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .board-strip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 11px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .board-chip {
+      font-size: 9.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--yc-bg);
+      border: 1px solid var(--border);
+      padding: 1.5px 6px;
+      border-radius: 3px;
+      letter-spacing: 0.02em;
+    }
   </style>
 </head>
 <body>
-  <div id="loginView">
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <button id="loginBtn">Login</button>
+
+  <header class="yc-header">
+    <div class="yc-brand">
+      <div class="yc-logo-box">A</div>
+      <div class="yc-title-group">
+        <span class="yc-title">Auto Apply</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-body">
+
+    <div id="loginView" class="yc-card">
+      <h2 class="card-title">Sign In</h2>
+      <p class="card-subtitle">Autonomous job application assistant for technical roles.</p>
+
+      <form id="loginForm">
+        <div class="field-group">
+          <label class="field-label" for="email">Email</label>
+          <input type="email" id="email" placeholder="alex@yc-startup.com" autocomplete="email" required />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••••••" autocomplete="current-password" required />
+        </div>
+
+        <button type="submit" id="loginBtn">
+          <span>Login</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </form>
+
+      <div class="board-strip">
+        <span class="board-chip">Greenhouse</span>
+        <span class="board-chip">Lever</span>
+        <span class="board-chip">Ashby</span>
+        <span class="board-chip">Workable</span>
+      </div>
+    </div>
+
+    <div id="appView" style="display:none;" class="yc-card">
+      <div class="status-card">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <div>
+          <p>Logged in</p>
+        </div>
+      </div>
+
+      <button id="autofillBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span>Autofill this page</span>
+      </button>
+
+      <button id="logoutBtn">Logout</button>
+
+      <div class="board-strip">
+        <span class="board-chip">Greenhouse</span>
+        <span class="board-chip">Lever</span>
+        <span class="board-chip">Ashby</span>
+        <span class="board-chip">Workable</span>
+      </div>
+    </div>
+
   </div>
-  <div id="appView" style="display:none;">
-    <p>Logged in ✓</p>
-    <button id="autofillBtn">Autofill this page</button>
-    <button id="logoutBtn">Logout</button>
-  </div>
+
   <script src="popup.js"></script>
 </body>
 </html>

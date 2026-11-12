@@ -2,16 +2,20 @@
   "manifest_version": 3,
   "name": "Auto Job Apply Autofill",
   "version": "1.0",
-  "description": "Autofills job applications on Greenhouse, Lever, Ashby, and Workday using your saved profile.",
+  "description": "Autofills job applications on Greenhouse, Lever, Ashby, and Workable using your saved profile.",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": [
     "https://job-boards.greenhouse.io/*",
     "https://boards.greenhouse.io/*",
     "https://jobs.lever.co/*",
     "https://jobs.ashbyhq.com/*",
+    "https://apply.workable.com/*",
     "https://*.myworkdayjobs.com/*",
     "http://localhost:3000/*"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html"
   },
@@ -21,7 +25,8 @@
         "https://job-boards.greenhouse.io/*",
         "https://boards.greenhouse.io/*",
         "https://jobs.lever.co/*",
-        "https://jobs.ashbyhq.com/*"
+        "https://jobs.ashbyhq.com/*",
+        "https://apply.workable.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle",

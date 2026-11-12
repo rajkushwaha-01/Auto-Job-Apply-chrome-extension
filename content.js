@@ -3,7 +3,9 @@ console.log("CONTENT SCRIPT LOADED on", window.location.href);
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "AUTOFILL") {
     runAutofill();
+    sendResponse({ status: "started" }); // acknowledges receipt, prevents lastError
   }
+  return true; // keep channel open in case of async work
 });
 
 async function runAutofill() {
@@ -13,25 +15,22 @@ async function runAutofill() {
     return;
   }
 
-  const API_BASE = "http://localhost:3000"; // change to your deployed URL once hosted
-
-  try {
-    const res = await fetch(`${API_BASE}/api/autofill/me`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!res.ok) {
-      alert("Could not fetch your profile. Please log in again.");
+  chrome.runtime.sendMessage({ action: "FETCH_PROFILE" }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error("Message to background failed:", chrome.runtime.lastError.message);
+      alert("Could not reach the extension background. Try reloading the extension.");
       return;
     }
 
-    const profile = await res.json();
-    console.log("PROFILE RECEIVED:", profile);
-    runAutofillForPlatform(profile);
-  } catch (err) {
-    console.error("Autofill fetch failed:", err);
-    alert("Request failed: " + err.message);
-  }
+    if (response.error) {
+      console.error("Autofill fetch failed:", response.error);
+      alert("Could not fetch your profile: " + response.error);
+      return;
+    }
+
+    console.log("PROFILE RECEIVED:", response.profile);
+    runAutofillForPlatform(response.profile);
+  });
 }
 
 function runAutofillForPlatform(profile) {
@@ -42,6 +41,8 @@ function runAutofillForPlatform(profile) {
     fillLeverForm(profile);
   } else if (host.includes("ashbyhq.com")) {
     fillAshbyForm(profile);
+  } else if (host.includes("workable.com")) {
+    fillWorkableForm(profile);
   } else if (host.includes("myworkdayjobs.com")) {
     const hasFormFields = document.querySelectorAll('input[type="text"], input[type="email"]').length > 0;
     if (!hasFormFields) {
@@ -62,7 +63,6 @@ function findField(patterns) {
   return null;
 }
 
-// fallback for custom questions with no useful name/id — matched by visible label text
 function findFieldByLabelText(labelText) {
   const labels = Array.from(document.querySelectorAll('label'));
   const match = labels.find(l => l.textContent.toLowerCase().includes(labelText.toLowerCase()));
@@ -202,7 +202,6 @@ function fillAshbyForm(profile) {
     }
   });
 
-  // phone and everything else has no stable name/id — label text is the only reliable match
   const labelFallbacks = [
     { label: "Phone", value: profile.phone },
     { label: "LinkedIn", value: profile.linkedin },
@@ -220,10 +219,31 @@ function fillAshbyForm(profile) {
     }
   });
 
-  showToast(`Autofilled ${filledCount} fields on Ashby. Attach resume manually, and double-check phone/links filled into the right boxes — Ashby's custom fields vary per company.`);
+  showToast(`Autofilled ${filledCount} fields on Ashby. Attach resume manually, and double-check phone/links filled into the right boxes.`);
 }
 
-// React/controlled-input forms often ignore .value = x directly — this forces the framework to register the change
+function fillWorkableForm(profile) {
+  const fieldMap = [
+    { patterns: ['input[name="firstname"]'], value: profile.firstName },
+    { patterns: ['input[name="lastname"]'], value: profile.lastName },
+    { patterns: ['input[name="email"]'], value: profile.email },
+    { patterns: ['input[name="phone"]'], value: profile.phone }
+  ];
+
+  let filledCount = 0;
+  fieldMap.forEach(({ patterns, value }) => {
+    if (!value) return;
+    const field = findField(patterns);
+    console.log(`Workable — Trying: ${patterns.join(", ")} | Found: ${!!field}`);
+    if (field) {
+      setNativeValue(field, value);
+      filledCount++;
+    }
+  });
+
+  showToast(`Autofilled ${filledCount} fields on Workable. Attach resume manually, and review the custom screening questions yourself.`);
+}
+
 function setNativeValue(element, value) {
   const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
   nativeInputValueSetter.call(element, value);
